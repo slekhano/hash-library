@@ -30,9 +30,12 @@
 #include <string>
 #include <cstring> // memcpy
 
+namespace hash_library
+{
+
 /// compute HMAC hash of data and key using MD5, SHA1 or SHA256
 template <typename HashMethod>
-std::string hmac(const void* data, size_t numDataBytes, const void* key, size_t numKeyBytes)
+void hmac(const void* data, size_t numDataBytes, const void* key, size_t numKeyBytes, unsigned char (&result)[HashMethod::HashBytes])
 {
   // initialize key with zeros
   unsigned char usedKey[HashMethod::BlockSize] = {0};
@@ -71,13 +74,15 @@ std::string hmac(const void* data, size_t numDataBytes, const void* key, size_t 
   finalHasher.add(usedKey, HashMethod::BlockSize);
   finalHasher.add(inside,  HashMethod::HashBytes);
 
-  return finalHasher.getHash();
+  finalHasher.getHash(result);
 }
 
 
 /// convenience function for std::string
 template <typename HashMethod>
-std::string hmac(const std::string& data, const std::string& key)
+void hmac(const std::string& data, const std::string& key, unsigned char (&result)[HashMethod::HashBytes])
 {
-  return hmac<HashMethod>(data.c_str(), data.size(), key.c_str(), key.size());
+  hmac<HashMethod>(data.c_str(), data.size(), key.c_str(), key.size(), result);
+}
+
 }

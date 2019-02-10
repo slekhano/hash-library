@@ -12,6 +12,9 @@
 #endif
 
 
+namespace hash_library
+{
+
 /// same as reset()
 SHA256::SHA256()
 {
@@ -408,4 +411,6 @@ std::string SHA256::operator()(const std::string& text)
   reset();
   add(text.c_str(), text.size());
   return getHash();
+}
+
 }
