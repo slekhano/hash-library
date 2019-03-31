@@ -35,7 +35,14 @@ namespace hash_library
 
 /// compute HMAC hash of data and key using MD5, SHA1 or SHA256
 template <typename HashMethod>
-void hmac(const void* data, size_t numDataBytes, const void* key, size_t numKeyBytes, unsigned char (&result)[HashMethod::HashBytes])
+void hmac(
+    const void* data0, size_t numDataBytes0, 
+    const void* data1, size_t numDataBytes1, 
+    const void* data2, size_t numDataBytes2, 
+    const void* data3, size_t numDataBytes3, 
+    const void* key, size_t numKeyBytes, 
+    unsigned char (&result)[HashMethod::HashBytes]
+)
 {
   // initialize key with zeros
   unsigned char usedKey[HashMethod::BlockSize] = {0};
@@ -62,7 +69,10 @@ void hmac(const void* data, size_t numDataBytes, const void* key, size_t numKeyB
   unsigned char inside[HashMethod::HashBytes];
   HashMethod insideHasher;
   insideHasher.add(usedKey, HashMethod::BlockSize);
-  insideHasher.add(data,    numDataBytes);
+  insideHasher.add(data0,    numDataBytes0);
+  insideHasher.add(data1,    numDataBytes1);
+  insideHasher.add(data2,    numDataBytes2);
+  insideHasher.add(data3,    numDataBytes3);
   insideHasher.getHash(inside);
 
   // undo usedKey's previous 0x36 XORing and apply a XOR by 0x5C
