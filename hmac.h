@@ -27,7 +27,9 @@
     - HashMethod::getHash(unsigned char buffer[HashMethod::BlockSize])
   */
 
+#include <array>
 #include <string>
+#include <string_view>
 #include <cstring> // memcpy
 
 namespace hash_library
@@ -36,11 +38,9 @@ namespace hash_library
 /// compute HMAC hash of data and key using MD5, SHA1 or SHA256
 template <typename HashMethod>
 void hmac(
-    const void* data0, size_t numDataBytes0, 
-    const void* data1, size_t numDataBytes1, 
-    const void* data2, size_t numDataBytes2, 
-    const void* data3, size_t numDataBytes3, 
-    const void* key, size_t numKeyBytes, 
+    std::string_view const & data0,
+    std::string_view const & data1,
+    std::string_view const & key,
     unsigned char (&result)[HashMethod::HashBytes]
 )
 {
@@ -48,16 +48,16 @@ void hmac(
   unsigned char usedKey[HashMethod::BlockSize] = {0};
 
   // adjust length of key: must contain exactly blockSize bytes
-  if (numKeyBytes <= HashMethod::BlockSize)
+  if (key.size() <= HashMethod::BlockSize)
   {
     // copy key
-    memcpy(usedKey, key, numKeyBytes);
+    memcpy(usedKey, key.data(), key.size());
   }
   else
   {
     // shorten key: usedKey = hashed(key)
     HashMethod keyHasher;
-    keyHasher.add(key, numKeyBytes);
+    keyHasher.add(key.data(), key.size());
     keyHasher.getHash(usedKey);
   }
 
@@ -69,10 +69,10 @@ void hmac(
   unsigned char inside[HashMethod::HashBytes];
   HashMethod insideHasher;
   insideHasher.add(usedKey, HashMethod::BlockSize);
-  insideHasher.add(data0,    numDataBytes0);
-  insideHasher.add(data1,    numDataBytes1);
-  insideHasher.add(data2,    numDataBytes2);
-  insideHasher.add(data3,    numDataBytes3);
+
+  insideHasher.add(data0.data(), data0.size());
+  insideHasher.add(data1.data(), data1.size());
+
   insideHasher.getHash(inside);
 
   // undo usedKey's previous 0x36 XORing and apply a XOR by 0x5C
@@ -88,11 +88,13 @@ void hmac(
 }
 
 
+#if 0
 /// convenience function for std::string
 template <typename HashMethod>
 void hmac(const std::string& data, const std::string& key, unsigned char (&result)[HashMethod::HashBytes])
 {
   hmac<HashMethod>(data.c_str(), data.size(), key.c_str(), key.size(), result);
 }
+#endif
 
 }
